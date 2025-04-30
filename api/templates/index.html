@@ -1,12 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Translator Service</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h2>Hello World</h2>
+<body class="flex flex-col min-h-screen bg-white">
+  <!-- Navbar -->
+  <nav class="bg-[#34568B] text-white py-4 shadow">
+    <div class="container mx-auto flex justify-between items-center px-4">
+      <h1 class="text-xl font-bold mx-auto">Translator Service</h1>
+<!-- <span class="hidden md:block text-sm">Exercise</span> -->
+    </div>
+  </nav>
+
+  <!-- Content -->
+  <main class="flex-grow p-6">
+    <div class="w-full max-w-2xl mx-auto space-y-6">
+      <!-- Textarea -->
+      <div>
+        <label for="text" class="block text-[#34568B] font-semibold mb-2">Text to Translate</label>
+        <textarea id="text" rows="6" class="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-[#88B04B]"></textarea>
+      </div>
+
+      <!-- Language input -->
+      <div>
+        <label for="languages" class="block text-[#34568B] font-semibold mb-2">Languages</label>
+        <input id="languages" type="text" placeholder="e.g., english, german, russian"
+          class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#88B04B]"/>
+        <p class="text-sm text-gray-500 mt-1">Write the languages you want to translate your text to, separated by commas.</p>
+      </div>
+
+      <!-- Button -->
+      <div class="text-center">
+        <button onclick="translateText()" class="bg-[#88B04B] text-white px-6 py-2 rounded-lg hover:bg-[#76a13e] transition">
+          Translate
+        </button>
+      </div>
+
+      <!-- Translation Results -->
+      <div id="results" class="space-y-4 pt-6 hidden">
+        <h2 class="text-xl font-semibold text-[#34568B] border-b pb-2">Translation Results</h2>
+        <div id="translationsList" class="space-y-4"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center text-black py-4">
+    &copy; 2024 Translator Service
+  </footer>
+
+  <script>
+    async function translateText() {
+      const text_for_translation = document.getElementById('text').value;
+      const languages_chosen = document.getElementById('languages').value;
+      const resultsContainer = document.getElementById('results');
+      const translationsList = document.getElementById('translationsList');
+
+      const payload = {
+        text: text_for_translation,
+        languages: languages_chosen
+      };
+
+      try {
+        const response = await fetch('http://localhost:8000/translate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        // Clear previous results
+        translationsList.innerHTML = '';
+
+        // Render new translations
+        result.translations.forEach(translation => {
+          const card = document.createElement('div');
+          card.className = 'border border-gray-200 rounded-lg shadow p-4';
+          card.innerHTML = `
+            <div class="font-semibold text-[#34568B] mb-2">Language: ${translation.language}</div>
+            <p>${translation.translated_text}</p>
+          `;
+          translationsList.appendChild(card);
+        });
+
+        resultsContainer.classList.remove('hidden');
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to submit translation request.');
+      }
+    }
+  </script>
 </body>
 </html>
